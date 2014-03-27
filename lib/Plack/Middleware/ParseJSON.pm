@@ -7,20 +7,26 @@ use version; our $VERSION = qv('0.0.1');
 use parent qw(Plack::Middleware);
 use JSON qw(from_json);
 use Plack::Request;
+use URI::Escape qw(uri_escape);
 
 sub call {
     my($self, $env) = @_;
     my $req = Plack::Request->new($env);
     my $type = $req->content_type;
     if ( defined $type and $type =~ m!^application/json! ) {
+        #warn "ParseJSON content = " . $req->content;
         my $json = from_json( $req->content );
         my @query;
         # XXX this version works only when json is a simple hash ref. XXX
         for my $key ( keys %{$json} ) {
             my $val = $json->{$key};
-            push @query, sprintf( "%s=%s", $key, $val );
+            push @query, sprintf( "%s=%s",
+                uri_escape($key),
+                uri_escape($val)
+            );
         }
         $env->{QUERY_STRING} = join( '&', @query ) if @query;
+        #warn "QUERY_STRING = " . $env->{QUERY_STRING};
     }
     $self->app->($env);
 }

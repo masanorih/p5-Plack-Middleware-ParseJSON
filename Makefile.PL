@@ -10,9 +10,10 @@ WriteMakefile(
     PL_FILES            => {},
     LICENSE             => 'perl',
     PREREQ_PM => {
-        'Test::More' => 0,
-        'version'    => 0,
-        'JSON'       => 0,
+        'Test::More'  => 0,
+        'version'     => 0,
+        'JSON'        => 0,
+        'URI::Escape' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Plack-Middleware-ParseJSON-*' },
