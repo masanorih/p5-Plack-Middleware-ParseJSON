@@ -3,7 +3,7 @@ package Plack::Middleware::ParseJSON;
 use warnings;
 use strict;
 use Carp;
-use version; our $VERSION = qv('0.0.1');
+use version; our $VERSION = qv('0.0.2');
 use parent qw(Plack::Middleware);
 use JSON qw(from_json);
 use Plack::Request;
@@ -14,21 +14,33 @@ sub call {
     my $req = Plack::Request->new($env);
     my $type = $req->content_type;
     if ( defined $type and $type =~ m!^application/json! ) {
-        #warn "ParseJSON content = " . $req->content;
         my $json = from_json( $req->content );
-        my @query;
-        # XXX this version works only when json is a simple hash ref. XXX
-        for my $key ( keys %{$json} ) {
-            my $val = $json->{$key};
+        _json2query( $env, $json );
+    }
+    $self->app->($env);
+}
+
+sub _json2query {
+    my( $env, $json ) = @_;
+    my @query;
+    for my $key ( keys %{$json} ) {
+        my $val = $json->{$key};
+        if ( 'ARRAY' eq ref $val ) {
+            for my $v ( @{$val} ) {
+                push @query, sprintf( "%s=%s",
+                    uri_escape($key),
+                    uri_escape($v)
+                );
+            }
+        }
+        else {
             push @query, sprintf( "%s=%s",
                 uri_escape($key),
                 uri_escape($val)
             );
         }
-        $env->{QUERY_STRING} = join( '&', @query ) if @query;
-        #warn "QUERY_STRING = " . $env->{QUERY_STRING};
     }
-    $self->app->($env);
+    $env->{QUERY_STRING} = join( '&', @query ) if @query;
 }
 
 1;
@@ -40,7 +52,7 @@ Plack::Middleware::ParseJSON - Plack middleware for parsing JSON post data
 
 =head1 VERSION
 
-This document describes Plack::Middleware::ParseJSON version 0.0.1
+This document describes Plack::Middleware::ParseJSON version 0.0.2
 
 =head1 SYNOPSIS
 
@@ -81,8 +93,13 @@ None reported.
 
 =head1 BUGS AND LIMITATIONS
 
-This version works only when json is a simple hash ref.
-Does not still work for multi-level json.
+This version works a bit more complicated json data.
+now supports array data. So
+    {
+        "a": "b",
+        "c": [ "d", "e" ]
+    }
+is ready to parse
 
 =head1 AUTHOR
 

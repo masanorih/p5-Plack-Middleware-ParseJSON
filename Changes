@@ -3,3 +3,5 @@ Revision history for Plack-Middleware-ParseJSON
 0.0.1  Wed Mar 26 21:37:44 2014
        Initial release.
 
+0.0.2  Wed May 28 00:18:18 2014
+       Ready to parse array data.
