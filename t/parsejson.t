@@ -7,17 +7,19 @@ use Plack::Test;
 use Test::More;
 use URI::Escape qw(uri_unescape);
 
-test_post(q!{
-    "foo": "bar",
-    "aaa": "bbb"
-}!);
-# with escape string
-test_post(q!{
-    "foo&": "foo&",
-    "bar ": "bar "
-}!);
-# utf8,shift_jis,euc-jp
-{
+subtest 'normal json' => sub {
+    test_post(q!{
+        "foo": "bar",
+        "aaa": "bbb"
+    }!);
+};
+subtest 'with escape string' => sub {
+    test_post(q!{
+        "foo&": "foo&",
+        "bar ": "bar "
+    }!);
+};
+subtest 'utf8, shift_jis, euc-jp' => sub {
     my $ref = {
         utf8 => uri_unescape '%E3%82%A6%E3%82%A3%E3%82%AD%E3%83%9A%E3%83%87%E3%82%A3%E3%82%A2',
         sjis => uri_unescape '%83E%83B%83L%83y%83f%83B%83A',
@@ -25,11 +27,13 @@ test_post(q!{
     };
     my $json = to_json $ref;
     test_post($json);
-}
-test_post(q!{
-    "a": "b",
-    "c": [ "d", "e" ]
-}!);
+};
+subtest 'array' => sub {
+    test_post(q!{
+        "a": "b",
+        "c": [ "d", "e" ]
+    }!);
+};
 
 sub test_post {
     my $json = shift;
